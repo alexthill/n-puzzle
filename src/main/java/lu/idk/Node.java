@@ -1,5 +1,7 @@
 package lu.idk;
 
+import lu.idk.heuristics.IHeuristic;
+
 public class Node {
     public Board board;
     public int g;

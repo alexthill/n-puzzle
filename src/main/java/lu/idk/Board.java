@@ -66,6 +66,10 @@ public class Board {
         }
     }
 
+    public int getN() {
+        return n;
+    }
+
     public int dirToValue(Dir dir) {
         switch (dir) {
             case LEFT:

@@ -1,5 +1,7 @@
 package lu.idk;
 
+import lu.idk.heuristics.IHeuristic;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
