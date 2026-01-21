@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Board {
-    public enum Dir { LEFT, RIGHT, UP, DOWN }
+    public enum Dir {LEFT, RIGHT, UP, DOWN}
 
     public static Board snail(int n) {
         Board board = new Board(n);
@@ -35,16 +35,20 @@ public class Board {
 
     public int dirToValue(Dir dir) {
         switch (dir) {
-            case LEFT: return -1;
-            case RIGHT: return 1;
-            case UP: return -size;
-            case DOWN: return size;
+            case LEFT:
+                return -1;
+            case RIGHT:
+                return 1;
+            case UP:
+                return -size;
+            case DOWN:
+                return size;
         }
         return 0;
     }
 
     public boolean isMoveValid(Dir dir) {
-        return !isBorder(holeIdx + dirToValue(dir);
+        return !isBorder(holeIdx + dirToValue(dir));
     }
 
     public boolean move(Dir dir) {
@@ -62,7 +66,7 @@ public class Board {
     }
 
     public int[] indexToCoords(int idx) {
-        return new int[] { (idx % size) - 1, idx / size - 1 };
+        return new int[]{(idx % size) - 1, idx / size - 1};
     }
 
     public int coordsToIdx(int x, int y) {
@@ -139,7 +143,7 @@ public class Board {
             }
         }
 
-        final Dir[] dirs = new Dir[]{ Dir.RIGHT, Dir.DOWN, Dir.LEFT, Dir.UP };
+        final Dir[] dirs = new Dir[]{Dir.RIGHT, Dir.DOWN, Dir.LEFT, Dir.UP};
         int dirIdx = 0;
         int pos = size + 1;
 
