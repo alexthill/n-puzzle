@@ -12,5 +12,14 @@ public class Main {
 
         board = board.clone();
         System.out.println("Cloned " + board.prettyString());
+
+        if (args.length > 0) {
+            try {
+                board = BoardParser.parse(args[0]);
+                System.out.println("Parsed " + board.prettyString());
+            } catch (Exception e) {
+                System.out.println("Error while reading input file \"" + args[0] + "\": " + e);
+            }
+        }
     }
 }

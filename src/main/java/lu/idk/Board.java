@@ -1,6 +1,7 @@
 package lu.idk;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,10 +28,42 @@ public class Board {
 
     private Board(int n) {
         this.n = n;
-
         size = n + 2;
         sizeSqr = size * size;
         grid = new int[sizeSqr];
+    }
+
+    public Board(int n, int[] array) throws Exception {
+        if (array.length != n * n) {
+            throw new Exception("array.length != n^2");
+        }
+
+        this.n = n;
+        size = n + 2;
+        sizeSqr = size * size;
+        grid = new int[sizeSqr];
+
+        int i = 0;
+        for (int y = 1; y < size - 1; ++y) {
+            for (int x = 1; x < size - 1; ++x) {
+                int num = array[i++];
+                if (num == 0) {
+                    holeIdx = coordsToIdx(x, y);
+                    grid[x + y * size] = n * n;
+                } else {
+                    grid[x + y * size] = num;
+                }
+            }
+        }
+
+        // Check if array contains numbers from 0 to n^2 after we have copied it to grid.
+        // This allows us to modifiy it without making a copy.
+        Arrays.sort(array);
+        for (i = 0; i < n * n; ++i) {
+            if (array[i] != i) {
+                throw new Exception("array does not contain exactly the numbers from 0 to N^2");
+            }
+        }
     }
 
     public int dirToValue(Dir dir) {
