@@ -70,6 +70,10 @@ public class Board {
         return n;
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public int dirToValue(Dir dir) {
         switch (dir) {
             case LEFT:
@@ -112,6 +116,10 @@ public class Board {
 
     public boolean isBorder(int idx) {
         return grid[idx] == 0;
+    }
+
+    public int getAtCoords(int x, int y) {
+        return grid[coordsToIdx(x, y)];
     }
 
     public String prettyString() {

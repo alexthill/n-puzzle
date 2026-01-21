@@ -1,6 +1,6 @@
 package lu.idk;
 
-import lu.idk.heuristics.Const;
+import lu.idk.heuristics.Manhattan;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,7 +26,7 @@ public class Main {
     }
 
     private static int heuristic(Board board) {
-        Const heuristic = new Const();
+        Manhattan heuristic = new Manhattan(Board.snail(board.getN()));
         return heuristic.h(board);
     }
 }
