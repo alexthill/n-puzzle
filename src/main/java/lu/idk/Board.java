@@ -1,7 +1,23 @@
 package lu.idk;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class Board {
     public enum Dir { LEFT, RIGHT, UP, DOWN }
+
+    public static Board snail(int n) {
+        Board board = new Board(n);
+        board.snailPatter();
+        return board;
+    }
+
+    public static Board random(int n) {
+        Board board = new Board(n);
+        board.randomPattern();
+        return board;
+    }
 
     private int n;
     private int size;
@@ -9,31 +25,30 @@ public class Board {
     private int holeIdx;
     private int[] grid;
 
-    public Board(int n) {
+    private Board(int n) {
         this.n = n;
 
         size = n + 2;
         sizeSqr = size * size;
         grid = new int[sizeSqr];
-        holeIdx = sizeSqr - size - 2;
+    }
 
-        int num = 1;
-        for (int y = 1; y < size - 1; ++y) {
-            for (int x = 1; x < size - 1; ++x) {
-                grid[x + y * size] = num;
-                num++;
-            }
+    public int dirToValue(Dir dir) {
+        switch (dir) {
+            case LEFT: return -1;
+            case RIGHT: return 1;
+            case UP: return -size;
+            case DOWN: return size;
         }
+        return 0;
+    }
+
+    public boolean isMoveValid(Dir dir) {
+        return !isBorder(holeIdx + dirToValue(dir);
     }
 
     public boolean move(Dir dir) {
-        int diff = 0;
-        switch (dir) {
-            case LEFT: diff = -1; break;
-            case RIGHT: diff = 1; break;
-            case UP: diff = -size; break;
-            case DOWN: diff = size; break;
-        }
+        int diff = dirToValue(dir);
         if (isBorder(holeIdx + diff)) {
             return false;
         }
@@ -91,9 +106,7 @@ public class Board {
                     } else if (x == 0 || x == size - 1) {
                         sb.append("│");
                     } else {
-                        for (int i = 0; i < cellW; ++i) {
-                            sb.append("─");
-                        }
+                        sb.append("─".repeat(cellW));
                     }
                 } else if (num == n * n) {
                     for (int i = 1; i < cellW; ++i) {
@@ -103,11 +116,63 @@ public class Board {
                 } else {
                     sb.append(String.format("%" + cellW + "d", num));
                 }
-                num++;
             }
             sb.append("\n");
         }
 
         return sb.toString();
+    }
+
+    public Board clone() {
+        Board board = new Board(n);
+        board.holeIdx = holeIdx;
+        for (int i = 0; i < sizeSqr; ++i) {
+            board.grid[i] = grid[i];
+        }
+        return board;
+    }
+
+    private void snailPatter() {
+        for (int y = 1; y < size - 1; ++y) {
+            for (int x = 1; x < size - 1; ++x) {
+                grid[x + y * size] = n * n;
+            }
+        }
+
+        final Dir[] dirs = new Dir[]{ Dir.RIGHT, Dir.DOWN, Dir.LEFT, Dir.UP };
+        int dirIdx = 0;
+        int pos = size + 1;
+
+        for (int i = 1; i < n * n; ++i) {
+            int[] coords = indexToCoords(pos);
+            grid[pos] = i;
+            int next = pos + dirToValue(dirs[dirIdx]);
+            if (grid[next] != n * n) {
+                dirIdx = (dirIdx + 1) % dirs.length;
+                next = pos + dirToValue(dirs[dirIdx]);
+            }
+            pos = next;
+        }
+
+        holeIdx = pos;
+    }
+
+    private void randomPattern() {
+        List<Integer> list = new ArrayList<>(n);
+        for (int i = 1; i <= n * n; i++) {
+            list.add(i);
+        }
+        Collections.shuffle(list);
+
+        int i = 0;
+        for (int y = 1; y < size - 1; ++y) {
+            for (int x = 1; x < size - 1; ++x) {
+                int num = list.get(i++);
+                grid[x + y * size] = num;
+                if (num == n * n) {
+                    holeIdx = coordsToIdx(x, y);
+                }
+            }
+        }
     }
 }
