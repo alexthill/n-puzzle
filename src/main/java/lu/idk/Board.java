@@ -175,8 +175,8 @@ public class Board {
     public Board clone() {
         Board board = new Board(n);
         board.holeIdx = holeIdx;
-        for (int i = 0; i < sizeSqr; ++i) {
-            board.grid[i] = grid[i];
+        if (sizeSqr >= 0) {
+            System.arraycopy(grid, 0, board.grid, 0, sizeSqr);
         }
         return board;
     }
@@ -223,5 +223,48 @@ public class Board {
                 }
             }
         }
+    }
+
+    int getParity() {
+        int parity = 0;
+        for (int i = 0; i < grid.length; i++) {
+            if (grid[i] == 0 || grid[i] == n * n)
+                continue;
+            for (int j = i + 1; j < grid.length; j++) {
+                if (grid[j] == 0 || grid[j] == n * n)
+                    continue;
+                if (grid[i] > grid[j]) {
+                    System.out.println(grid[i] + " > " + grid[j]);
+                    parity++;
+                }
+            }
+        }
+        return parity;
+    }
+
+    public boolean isSolvable() {
+        int parity = getParity();
+        if (n % 2 == 1) {
+            return parity % 2 == 1;
+        }
+
+        int pos = size - (holeIdx / size + 1);
+        if (pos % 2 == 1)
+            return parity % 2 == 0;
+        else
+            return parity % 2 == 1;
+    }
+
+    public boolean isSolutionValid(List<Dir> moves) {
+        Board current = this.clone();
+        Board snail = Board.snail(n);
+        for (Dir move : moves) {
+            current.move(move);
+        }
+        return current.boardEquals(snail);
+    }
+
+    public boolean boardEquals(Board b) {
+        return Arrays.equals(b.grid, this.grid);
     }
 }
