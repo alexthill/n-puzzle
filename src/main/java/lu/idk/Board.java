@@ -20,8 +20,8 @@ public class Board {
         return board;
     }
 
-    private int n;
-    private int size;
+    private final int n;
+    private final int size;
     private int holeIdx;
     private int[] grid;
 
@@ -54,7 +54,7 @@ public class Board {
         }
 
         // Check if array contains numbers from 0 to n^2 after we have copied it to grid.
-        // This allows us to modifiy it without making a copy.
+        // This allows us to modify it without making a copy.
         Arrays.sort(array);
         for (i = 0; i < n * n; ++i) {
             if (array[i] != i) {
@@ -80,17 +80,12 @@ public class Board {
     }
 
     public int dirToValue(Dir dir) {
-        switch (dir) {
-            case LEFT:
-                return -1;
-            case RIGHT:
-                return 1;
-            case UP:
-                return -size;
-            case DOWN:
-                return size;
-        }
-        return 0;
+        return switch (dir) {
+            case LEFT -> -1;
+            case RIGHT -> 1;
+            case UP -> -size;
+            case DOWN -> size;
+        };
     }
 
     public boolean isMoveValid(Dir dir) {
@@ -159,9 +154,7 @@ public class Board {
             for (int x = 0; x < size; ++x) {
                 int num = grid[coordsToIdx(x, y)];
                 if (coordsToIdx(x, y) == holeIdx) {
-                    for (int i = 1; i < cellW; ++i) {
-                        sb.append(" ");
-                    }
+                    sb.append(" ".repeat(cellW - 1));
                     sb.append("_");
                 } else if (num == 0) {
                     if (x == 0 && y == 0) {
@@ -206,10 +199,7 @@ public class Board {
 
     @Override
     public int hashCode() {
-        int result = Integer.hashCode(holeIdx);
-        result = 31 * holeIdx + Arrays.hashCode(grid);
-
-        return result;
+        return 31 * holeIdx + Arrays.hashCode(grid);
     }
 
     private void snailPatter() {
@@ -224,7 +214,6 @@ public class Board {
         int pos = size + 1;
 
         for (int i = 1; i < n * n; ++i) {
-            int[] coords = indexToCoords(pos);
             grid[pos] = i;
             int next = pos + dirToValue(dirs[dirIdx]);
             if (grid[next] != n * n) {

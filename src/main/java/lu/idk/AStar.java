@@ -30,19 +30,15 @@ public class AStar {
             int tmp = opened.size() + closed.size();
             if (tmp > sizeComplexity)
                 sizeComplexity = tmp;
-//            opened.sort(Comparator.comparing(item -> item.f));
             Node process = opened.poll();
             if (process.board.boardEquals(finalBoard)) {
                 System.out.println("Found");
                 List<Dir> moves = process.getPath();
-//                Board test = startBoard.clone();
                 for (Dir dir : moves) {
-//                    test.move(dir);
                     System.out.println(dir);
                 }
                 System.out.printf("Time complexity: %d\n", timeComplexity);
                 System.out.printf("Size complexity: %d\n", sizeComplexity);
-//                System.out.println(test.prettyString());
                 return moves;
             }
             closed.add(process);

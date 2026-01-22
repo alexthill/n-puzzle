@@ -5,7 +5,6 @@ import lu.idk.heuristics.HeuristicFactory.HeuristicFactoryException;
 import lu.idk.heuristics.IHeuristic;
 
 import java.lang.NumberFormatException;
-import java.io.Console;
 import java.util.List;
 
 public class Main {
@@ -42,20 +41,13 @@ public class Main {
             System.exit(1);
         }
 
-        // System.out.println("Press Enter to continue");
-        // System.console().readLine();
-
-        if (board != null && heuristic != null) {
-            System.out.printf("Solving board\n%s\n", board.prettyString());
-//            System.out.println("Is reachable: " + board.isReachable(Board.snail(board.getN())));
-            if (board.isSolvable()) {
-                ctrlz(board, heuristic);
-            } else {
-                System.out.println("Board is not solvable!");
-            }
+        System.out.printf("Solving board\n%s\n", board.prettyString());
+        if (board.isSolvable()) {
+            ctrlz(board, heuristic);
         } else {
-            System.err.println("unexpected null");
+            System.out.println("Board is not solvable!");
         }
+
     }
 
     private static Board parseBoard(String arg) {
@@ -72,12 +64,8 @@ public class Main {
     private static void ctrlz(Board board, IHeuristic heuristic) {
         Board snail = Board.snail(board.getN());
         System.out.println("Snail " + snail.prettyString());
-//        AStar aStar = new AStar();
-//        Const heuristic = new Const();
-//        aStar.init(heuristic);
         IDAStar algo = new IDAStar(heuristic, snail);
         long before = System.currentTimeMillis();
-//        List<Board.Dir> moves = aStar.search(board, snail);
         TheSolution solution = algo.idaStar(board);
         long after = System.currentTimeMillis();
         if (solution != null) {

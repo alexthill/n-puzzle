@@ -18,20 +18,20 @@ import java.util.PriorityQueue;
 public class StaticAdditivePattern implements IHeuristic {
 
     private static final int DATABASE_VERSION = 2;
-    private static final int[][][] PATTERNS_3 = new int[][][] {
-        {{1, 1}, {1, 2}, {1, 3}, {2, 1}},
-        {{3, 1}, {3, 2}, {3, 3}, {2, 3}},
+    private static final int[][][] PATTERNS_3 = new int[][][]{
+            {{1, 1}, {1, 2}, {1, 3}, {2, 1}},
+            {{3, 1}, {3, 2}, {3, 3}, {2, 3}},
     };
-    private static final int[][][] PATTERNS_4 = new int[][][] {
-        {{1, 1}, {1, 2}, {1, 3}, {1, 4}, {2, 2}},
-        {{2, 1}, {3, 1}, {3, 2}, {4, 1}, {4, 2}},
-        {{4, 2}, {3, 3}, {3, 4}, {4, 3}, {4, 4}},
+    private static final int[][][] PATTERNS_4 = new int[][][]{
+            {{1, 1}, {1, 2}, {1, 3}, {1, 4}, {2, 2}},
+            {{2, 1}, {3, 1}, {3, 2}, {4, 1}, {4, 2}},
+            {{4, 2}, {3, 3}, {3, 4}, {4, 3}, {4, 4}},
     };
 
-    private int[][][] patterns;
-    private Board target;
+    private final int[][][] patterns;
+    private final Board target;
     private ArrayList<HashMap<Integer, Integer>> tables;
-    private ArrayList<PatternData> patternData;
+    private final ArrayList<PatternData> patternData;
 
     public StaticAdditivePattern(Board target) throws HeuristicFactoryException {
         this.target = target;
@@ -54,15 +54,15 @@ public class StaticAdditivePattern implements IHeuristic {
                 throw new HeuristicFactoryException("StaticAdditivePattern can only be used with N=3 or N=4");
         }
 
-        patternData = new ArrayList(patterns.length);
-        for (int[][] pattern: patterns) {
+        patternData = new ArrayList<>(patterns.length);
+        for (int[][] pattern : patterns) {
             patternData.add(new PatternData(pattern, target));
         }
 
         boolean readValidTable = readDatabase();
         if (!readValidTable) {
             System.out.println("computing pattern database (this may take some time)");
-            tables = new ArrayList(patterns.length);
+            tables = new ArrayList<>(patterns.length);
             long start = System.currentTimeMillis();
             for (int i = 0; i < patterns.length; ++i) {
                 tables.add(computeDatabase(patternData.get(i)));
@@ -95,16 +95,16 @@ public class StaticAdditivePattern implements IHeuristic {
         String file = getDatabaseName();
         System.out.printf("saving pattern database to %s\n", file);
         try (
-            FileOutputStream os = new FileOutputStream(file);
-            BufferedOutputStream bs = new BufferedOutputStream(os);
-            DataOutputStream out = new DataOutputStream(bs)
+                FileOutputStream os = new FileOutputStream(file);
+                BufferedOutputStream bs = new BufferedOutputStream(os);
+                DataOutputStream out = new DataOutputStream(bs)
         ) {
             out.writeInt(DATABASE_VERSION);
             out.writeInt(target.getN());
             out.writeInt(tables.size());
-            for (HashMap<Integer, Integer> table: tables) {
+            for (HashMap<Integer, Integer> table : tables) {
                 out.writeInt(table.size());
-                for (HashMap.Entry<Integer, Integer> entry: table.entrySet()) {
+                for (HashMap.Entry<Integer, Integer> entry : table.entrySet()) {
                     out.writeInt(entry.getKey());
                     out.writeInt(entry.getValue());
                 }
@@ -118,9 +118,9 @@ public class StaticAdditivePattern implements IHeuristic {
         String file = getDatabaseName();
         System.out.printf("reading pattern database from %s\n", file);
         try (
-            FileInputStream is = new FileInputStream(file);
-            BufferedInputStream bs = new BufferedInputStream(is);
-            DataInputStream in = new DataInputStream(bs)
+                FileInputStream is = new FileInputStream(file);
+                BufferedInputStream bs = new BufferedInputStream(is);
+                DataInputStream in = new DataInputStream(bs)
         ) {
             if (in.readInt() != DATABASE_VERSION) {
                 throw new Exception("invalid database: bad version");
@@ -134,10 +134,10 @@ public class StaticAdditivePattern implements IHeuristic {
                 throw new Exception("invalid database: bad tableCount");
             }
 
-            tables = new ArrayList(tableCount);
+            tables = new ArrayList<>(tableCount);
             for (int i = 0; i < tableCount; ++i) {
                 int size = in.readInt();
-                HashMap<Integer, Integer> table = new HashMap(size);
+                HashMap<Integer, Integer> table = new HashMap<>(size);
                 for (int j = 0; j < size; ++j) {
                     int key = in.readInt();
                     int val = in.readInt();
@@ -167,7 +167,7 @@ public class StaticAdditivePattern implements IHeuristic {
             }
         }
 
-        final Dir[] dirs = new Dir[] {Dir.RIGHT, Dir.DOWN, Dir.LEFT, Dir.UP};
+        final Dir[] dirs = new Dir[]{Dir.RIGHT, Dir.DOWN, Dir.LEFT, Dir.UP};
 
         HashMap<Integer, Integer> table = new HashMap<>();
         HashSet<Long> visited = new HashSet<>();
@@ -177,7 +177,7 @@ public class StaticAdditivePattern implements IHeuristic {
         while (!queue.isEmpty()) {
             Node curr = queue.poll();
             int boardIdx = computeBoardIdx(curr.board, data.isNumInPattern, data.numOrder);
-            long boardIdxFull = ((long)boardIdx << 8) | curr.board.getHoleIdx();
+            long boardIdxFull = ((long) boardIdx << 8) | curr.board.getHoleIdx();
 
             if (!visited.add(boardIdxFull)) {
                 continue;
@@ -185,7 +185,7 @@ public class StaticAdditivePattern implements IHeuristic {
             // if (visited.size() % 100000 == 0)
             //     System.out.printf("visited %d, queue size %d\n", visited.size(), queue.size());
 
-            for (Dir dir: dirs) {
+            for (Dir dir : dirs) {
                 if (curr.board.isMoveValid(dir)) {
                     Board next = curr.board.clone();
                     int num = next.move(dir);
@@ -197,21 +197,19 @@ public class StaticAdditivePattern implements IHeuristic {
                 }
             }
 
-            table.merge(boardIdx, curr.cost, (oldVal, newVal) -> {
-                return oldVal == null || oldVal > newVal ? newVal : oldVal;
-            });
+            table.merge(boardIdx, curr.cost, (oldVal, newVal) -> oldVal > newVal ? newVal : oldVal);
         }
 
-        int costSum = 0;
+        /*int costSum = 0;
         int costMax = 0;
-        for (HashMap.Entry<Integer, Integer> entry: table.entrySet()) {
+        for (HashMap.Entry<Integer, Integer> entry : table.entrySet()) {
             int cost = entry.getValue();
             costSum += cost;
             costMax = Math.max(costMax, cost);
         }
 
-        // System.out.println("table size: " + table.size());
-        // System.out.println("cost sum " + costSum + ", cost max " + costMax);
+        System.out.println("table size: " + table.size());
+        System.out.println("cost sum " + costSum + ", cost max " + costMax);*/
 
         return table;
     }
@@ -254,7 +252,6 @@ public class StaticAdditivePattern implements IHeuristic {
 
         public PatternData(int[][] pattern, Board target) {
             int n = target.getN();
-            int size = target.getSize();
             int numsInPatternIdx = 0;
             int nextNumOrder = 0;
 
@@ -262,7 +259,7 @@ public class StaticAdditivePattern implements IHeuristic {
             numOrder = new int[n * n + 1];
             numsInPattern = new int[pattern.length];
 
-            for (int[] coords: pattern) {
+            for (int[] coords : pattern) {
                 int num = target.getAtCoords(coords[0], coords[1]);
                 isNumInPattern[num] = true;
                 numsInPattern[numsInPatternIdx++] = num;
