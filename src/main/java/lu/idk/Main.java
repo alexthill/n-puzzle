@@ -71,18 +71,25 @@ public class Main {
         Board snail = Board.snail(board.getN());
         System.out.println("Snail " + snail.prettyString());
         IDAStar algo = new IDAStar(heuristic, snail, greedy);
-        long before = System.currentTimeMillis();
-        TheSolution solution = algo.idaStar(board);
-        long after = System.currentTimeMillis();
-        if (solution != null) {
-            System.out.println("States: ");
-            printStates(solution.solution, board);
-            System.out.println("Solution: " + board.isSolutionValid(solution.solution));
-            System.out.println("Number of moves: " + solution.solution.size());
-            System.out.println("Time complexity: " + solution.timeComplexity);
-            System.out.println("Size complexity: " + solution.sizeComplexity);
+
+        try {
+            long before = System.currentTimeMillis();
+            TheSolution solution = algo.idaStar(board);
+            long after = System.currentTimeMillis();
+            if (solution != null) {
+                System.out.println("States: ");
+                printStates(solution.solution, board);
+                System.out.println("Solution: " + board.isSolutionValid(solution.solution));
+                System.out.println("Number of moves: " + solution.solution.size());
+                System.out.println("Time complexity: " + solution.timeComplexity);
+                System.out.println("Size complexity: " + solution.sizeComplexity);
+            }
+            System.out.printf("Time taken: %d ms\n", after - before);
+        } catch (java.lang.StackOverflowError e) {
+            // Stackoverflow can easily happen if you do greedy search.
+            System.err.println("Oh no, the stack overflowed!");
+            System.exit(42);
         }
-        System.out.printf("Time taken: %d ms\n", after - before);
     }
 
     private static void printStates(List<Board.Dir> moves, Board initialBoard) {
