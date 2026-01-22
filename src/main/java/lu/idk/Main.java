@@ -1,67 +1,81 @@
 package lu.idk;
 
-import lu.idk.heuristics.Manhattan;
+import lu.idk.heuristics.HeuristicFactory;
+import lu.idk.heuristics.HeuristicFactory.HeuristicFactoryException;
+import lu.idk.heuristics.IHeuristic;
 
+import java.lang.NumberFormatException;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        /*System.out.println("Hello and welcome to n-puzzle!\n");
+        if (args.length != 2) {
+            System.err.println("Usage: n-puzzle [input file] [heuristic]");
+            System.err.println("or:    n-puzzle [random board size] [heuristic]");
+            System.err.println("\nSupported heuristics:");
+            System.err.println("  - const (always returns 1)");
+            System.err.println("  - manhattan (sums of manhattan distances of misplaced tiles)");
+            System.err.println("  - pattern (generates and uses a pattern database)");
+            System.exit(1);
+        }
 
-        Board board = Board.snail(4);
-        System.out.println("Snail " + board.prettyString());
-        System.out.println("h(Snail) = " + heuristic(board));
-        System.out.println("Is solvable = " + board.isSolvable());
-
-        board = Board.random(4);
-        System.out.println("Random " + board.prettyString());
-        System.out.println("h(Random) = " + heuristic(board));
-        System.out.println("Is solvable = " + board.isSolvable());
-
-        if (args.length > 0) {
-            try {
-                board = BoardParser.parse(args[0]);
-                System.out.println("Parsed " + board.prettyString());
-                System.out.println("h(Parsed) = " + heuristic(board));
-
-            } catch (Exception e) {
-                System.out.println("Error while reading input file \"" + args[0] + "\": " + e);
+        Board board = null;
+        try {
+            int n = Integer.parseInt(args[0]);
+            if (n < 2 || n > 42) {
+                System.err.printf("invalid board size %d given, must in range [2, 42]\n", n);
+                System.exit(1);
             }
-        }*/
+            System.out.printf("Generating random board of size %d\n", n);
+            board = Board.random(n);
+        } catch (NumberFormatException e) {
+            board = parseBoard(args[0]);
+        }
 
-        System.out.println("\n\nSTARTING ALGO");
-        ctrlz(args);
+        IHeuristic heuristic = null;
+        try {
+            Board snail = Board.snail(board.getN());
+            heuristic = HeuristicFactory.newHeuristic(snail, args[1]);
+        } catch (HeuristicFactoryException e) {
+            System.err.printf("Failed create heurisitc: %s\n", e.getMessage());
+            System.exit(1);
+        }
+
+        if (board != null && heuristic != null) {
+            System.out.printf("Solving board\n%s\n", board.prettyString());
+            if (board.isSolvable()) {
+                ctrlz(board, heuristic);
+            } else {
+                System.out.println("Board is not solvable!");
+            }
+        } else {
+            System.err.println("unexpected null");
+        }
     }
 
-    private static int heuristic(Board board) {
-        Manhattan heuristic = new Manhattan(Board.snail(board.getN()));
-        return heuristic.h(board);
+    private static Board parseBoard(String arg) {
+        System.out.printf("Reading board from file %s\n", arg);
+        try {
+            return BoardParser.parse(arg);
+        } catch (Exception e) {
+            System.err.printf("Failed to parse board: %s\n", e.getMessage());
+            System.exit(1);
+        }
+        return null;
     }
 
-    private static void ctrlz(String[] args) {
-        Board snail = Board.snail(4);
+    private static void ctrlz(Board board, IHeuristic heuristic) {
+        Board snail = Board.snail(board.getN());
         System.out.println("Snail " + snail.prettyString());
-        Manhattan heuristic = new Manhattan(snail);
 //        AStar aStar = new AStar();
 //        Const heuristic = new Const();
 //        aStar.init(heuristic);
         IDAStar algo = new IDAStar(heuristic, snail);
-        Board board = Board.random(4);
-        System.out.println("Is solvable = " + board.isSolvable());
-        System.out.println(board.prettyString());
         long before = System.currentTimeMillis();
 //        List<Board.Dir> moves = aStar.search(board, snail);
         algo.idaStar(board);
         long after = System.currentTimeMillis();
-        System.out.println("After board: " + board.prettyString());
 //        System.out.println("Solution: " + board.isSolutionValid(moves));
-        System.out.printf("Time taken: %d\n", after - before);
-        if (args.length > 0) {
-            try {
-//                Board board = BoardParser.parse(args[0]);
-            } catch (Exception e) {
-                System.out.println("Error while reading input file \"" + args[0] + "\": " + e);
-            }
-        }
+        System.out.printf("Time taken: %d ms\n", after - before);
     }
 }

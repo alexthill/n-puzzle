@@ -74,6 +74,14 @@ public class Board {
         return size;
     }
 
+    public int getHoleIdx() {
+        return holeIdx;
+    }
+
+    public void setHoleIdx(int idx) {
+        holeIdx = idx;
+    }
+
     public int dirToValue(Dir dir) {
         switch (dir) {
             case LEFT:
@@ -92,18 +100,20 @@ public class Board {
         return !isBorder(holeIdx + dirToValue(dir));
     }
 
-    public boolean move(Dir dir) {
+    /**
+     * Apply a move to board. This does not check if the move is valid. Use `isMoveValid`.
+     *
+     * @return  the number that is moved into the hole
+     */
+    public int move(Dir dir) {
         int diff = dirToValue(dir);
-        if (isBorder(holeIdx + diff)) {
-            return false;
-        }
+        int num = grid[holeIdx + diff];
 
-        int tmp = grid[holeIdx];
-        grid[holeIdx] = grid[holeIdx + diff];
-        grid[holeIdx + diff] = tmp;
+        grid[holeIdx + diff] = grid[holeIdx];
+        grid[holeIdx] = num;
         holeIdx += diff;
 
-        return true;
+        return num;
     }
 
     public int[] indexToCoords(int idx) {
@@ -120,6 +130,10 @@ public class Board {
 
     public int getAtCoords(int x, int y) {
         return grid[coordsToIdx(x, y)];
+    }
+
+    public void setAtCoords(int x, int y, int value) {
+        grid[coordsToIdx(x, y)] = value;
     }
 
     public String prettyString() {
@@ -172,13 +186,29 @@ public class Board {
         return sb.toString();
     }
 
+    @Override
     public Board clone() {
         Board board = new Board(n);
         board.holeIdx = holeIdx;
-        if (sizeSqr >= 0) {
-            System.arraycopy(grid, 0, board.grid, 0, sizeSqr);
-        }
+        board.grid = grid.clone();
+
         return board;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        return holeIdx == ((Board) o).holeIdx && Arrays.equals(grid, ((Board) o).grid);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Integer.hashCode(holeIdx);
+        result = 31 * holeIdx + Arrays.hashCode(grid);
+
+        return result;
     }
 
     private void snailPatter() {
@@ -234,7 +264,6 @@ public class Board {
                 if (grid[j] == 0 || grid[j] == n * n)
                     continue;
                 if (grid[i] > grid[j]) {
-                    System.out.println(grid[i] + " > " + grid[j]);
                     parity++;
                 }
             }
