@@ -8,13 +8,15 @@ public class IDAStar {
 
     Stack<Node> path = new Stack<>();
     IHeuristic heuristic;
+    boolean greedy;
     Board finalBoard;
     int timeComplexity = 0;
     int sizeComplexity = 0;
 
-    public IDAStar(IHeuristic heuristic, Board finalBoard) {
+    public IDAStar(IHeuristic heuristic, Board finalBoard, boolean greedy) {
         this.heuristic = heuristic;
         this.finalBoard = finalBoard;
+        this.greedy = greedy;
     }
 
     TheSolution idaStar(Board startBoard) {
@@ -37,8 +39,13 @@ public class IDAStar {
     }
 
     Solution search(int g, int bound) {
-        if (path.size() > sizeComplexity)
+        if (greedy) {
+            g = 0;
+        }
+        if (path.size() > sizeComplexity) {
             sizeComplexity = path.size();
+        }
+
         Node node = path.lastElement();
         int f = g + heuristic.h(node.board);
         if (f > bound) {

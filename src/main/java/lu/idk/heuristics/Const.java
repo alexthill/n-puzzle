@@ -6,6 +6,6 @@ public class Const implements IHeuristic {
 
     @Override
     public int h(Board board) {
-        return 1;
+        return 0;
     }
 }

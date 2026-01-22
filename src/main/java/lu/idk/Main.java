@@ -9,14 +9,20 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length != 2) {
+        if (args.length < 2) {
             System.err.println("Usage: n-puzzle [input file] [heuristic]");
             System.err.println("or:    n-puzzle [random board size] [heuristic]");
+            System.err.println("\n  Add greedy as third argument to set g(x)=0 and run as greedy search.");
             System.err.println("\nSupported heuristics:");
             System.err.println("  - const (always returns 1)");
             System.err.println("  - manhattan (sums of manhattan distances of misplaced tiles)");
             System.err.println("  - pattern (generates and uses a pattern database)");
             System.exit(1);
+        }
+
+        boolean greedy = false;
+        if (args.length >= 3 && args[2].equalsIgnoreCase("greedy")) {
+            greedy = true;
         }
 
         Board board;
@@ -43,7 +49,7 @@ public class Main {
 
         System.out.printf("Solving board\n%s\n", board.prettyString());
         if (board.isReachable(snail)) {
-            ctrlz(board, heuristic);
+            ctrlz(board, heuristic, greedy);
         } else {
             System.out.println("Board is not solvable!");
         }
@@ -61,10 +67,10 @@ public class Main {
         return null;
     }
 
-    private static void ctrlz(Board board, IHeuristic heuristic) {
+    private static void ctrlz(Board board, IHeuristic heuristic, boolean greedy) {
         Board snail = Board.snail(board.getN());
         System.out.println("Snail " + snail.prettyString());
-        IDAStar algo = new IDAStar(heuristic, snail);
+        IDAStar algo = new IDAStar(heuristic, snail, greedy);
         long before = System.currentTimeMillis();
         TheSolution solution = algo.idaStar(board);
         long after = System.currentTimeMillis();
