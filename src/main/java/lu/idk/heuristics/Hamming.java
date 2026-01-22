@@ -19,7 +19,7 @@ public class Hamming implements IHeuristic {
             for (int y = 0; y < size; y++) {
                 int targetValue = target.getAtCoords(x, y);
                 int boardValue = board.getAtCoords(x, y);
-                if (targetValue != 0 && targetValue == boardValue) {
+                if (targetValue != 0 && targetValue != boardValue) {
                     result++;
                 }
             }
