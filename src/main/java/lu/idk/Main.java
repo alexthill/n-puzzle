@@ -19,7 +19,7 @@ public class Main {
             System.exit(1);
         }
 
-        Board board = null;
+        Board board;
         try {
             int n = Integer.parseInt(args[0]);
             if (n < 2 || n > 42) {
@@ -43,6 +43,7 @@ public class Main {
 
         if (board != null && heuristic != null) {
             System.out.printf("Solving board\n%s\n", board.prettyString());
+//            System.out.println("Is reachable: " + board.isReachable(Board.snail(board.getN())));
             if (board.isSolvable()) {
                 ctrlz(board, heuristic);
             } else {
@@ -73,9 +74,26 @@ public class Main {
         IDAStar algo = new IDAStar(heuristic, snail);
         long before = System.currentTimeMillis();
 //        List<Board.Dir> moves = aStar.search(board, snail);
-        algo.idaStar(board);
+        TheSolution solution = algo.idaStar(board);
         long after = System.currentTimeMillis();
-//        System.out.println("Solution: " + board.isSolutionValid(moves));
+        if (solution != null) {
+            System.out.println("States: ");
+            printStates(solution.solution, board);
+            System.out.println("Solution: " + board.isSolutionValid(solution.solution));
+            System.out.println("Number of moves: " + solution.solution.size());
+            System.out.println("Time complexity: " + solution.timeComplexity);
+            System.out.println("Size complexity: " + solution.sizeComplexity);
+        }
         System.out.printf("Time taken: %d ms\n", after - before);
+    }
+
+    private static void printStates(List<Board.Dir> moves, Board initialBoard) {
+        Board board = initialBoard.clone();
+        System.out.println(board.prettyString());
+        for (Board.Dir move : moves) {
+            board.move(move);
+            System.out.println(move);
+            System.out.println(board.prettyString());
+        }
     }
 }

@@ -4,6 +4,10 @@ import lu.idk.heuristics.IHeuristic;
 
 import lu.idk.Board.Dir;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class Node {
     public Board board;
     public int g;
@@ -34,6 +38,31 @@ public class Node {
         this.g += g + 1;
         this.h = heuristic.h(this.board);
         this.f = this.g + this.h;
+    }
+
+    public List<Dir> getPath() {
+        List<Board.Dir> moves = new ArrayList<>();
+        Node current = this;
+        while (current.dir != null) {
+            moves.add(current.dir);
+            current = current.parent;
+        }
+        Collections.reverse(moves);
+        return moves;
+    }
+
+    public List<Node> getNextNodes(IHeuristic heuristic) {
+        List<Node> result = new ArrayList<>();
+        for (Dir dir : Dir.values()) {
+            if (this.board.isMoveValid(dir)) {
+                Board newBoard = this.board.clone();
+                newBoard.move(dir);
+                Node newNode = new Node(newBoard, this, dir);
+                newNode.update(this.g, heuristic);
+                result.add(newNode);
+            }
+        }
+        return result;
     }
 
     @Override

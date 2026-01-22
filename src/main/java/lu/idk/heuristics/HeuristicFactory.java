@@ -13,11 +13,15 @@ public class HeuristicFactory {
         return instance;
     }
 
-    private HeuristicFactory() {}
+    private HeuristicFactory() {
+    }
 
-    public static IHeuristic newHeuristic(Board target, String name) throws HeuristicFactoryException{
+    public static IHeuristic newHeuristic(Board target, String name) throws HeuristicFactoryException {
         if (name.equalsIgnoreCase("const")) {
             return new Const();
+        }
+        if (name.equalsIgnoreCase("hamming")) {
+            return new Hamming(target);
         }
         if (name.equalsIgnoreCase("manhattan")) {
             return new Manhattan(target);

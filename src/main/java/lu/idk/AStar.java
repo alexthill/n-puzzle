@@ -34,7 +34,7 @@ public class AStar {
             Node process = opened.poll();
             if (process.board.boardEquals(finalBoard)) {
                 System.out.println("Found");
-                List<Dir> moves = getPath(process);
+                List<Dir> moves = process.getPath();
 //                Board test = startBoard.clone();
                 for (Dir dir : moves) {
 //                    test.move(dir);
@@ -45,9 +45,8 @@ public class AStar {
 //                System.out.println(test.prettyString());
                 return moves;
             }
-//            opened.remove(process);
             closed.add(process);
-            for (Node node : getNextNodes(process)) {
+            for (Node node : process.getNextNodes(heuristic)) {
                 if (closed.contains(node))
                     continue;
                 if (!opened.contains(node)) {
@@ -57,42 +56,10 @@ public class AStar {
                     opened.remove(node);
                     Node actual_node = new Node(node);
                     opened.add(actual_node);
-/*
-                    if (node.g < actual_node.g) {
-                        actual_node.g = node.g;
-                        actual_node.f = node.f;
-                        actual_node.parent = node.parent;
-                    }
-*/
                 }
             }
         }
         System.out.println("No solution founded");
         return null;
-    }
-
-    public List<Node> getNextNodes(Node node) {
-        List<Node> result = new ArrayList<>();
-        for (Dir dir : Dir.values()) {
-            if (node.board.isMoveValid(dir)) {
-                Board newBoard = node.board.clone();
-                newBoard.move(dir);
-                Node newNode = new Node(newBoard, node, dir);
-                newNode.update(node.g, heuristic);
-                result.add(newNode);
-            }
-        }
-        return result;
-    }
-
-    public List<Dir> getPath(Node node) {
-        List<Dir> moves = new ArrayList<>();
-        Node current = node;
-        while (current.dir != null) {
-            moves.add(current.dir);
-            current = current.parent;
-        }
-        Collections.reverse(moves);
-        return moves;
     }
 }

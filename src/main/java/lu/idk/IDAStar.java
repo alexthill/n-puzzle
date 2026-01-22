@@ -2,9 +2,6 @@ package lu.idk;
 
 import lu.idk.heuristics.IHeuristic;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Stack;
 
 public class IDAStar {
@@ -12,83 +9,60 @@ public class IDAStar {
     Stack<Node> path = new Stack<>();
     IHeuristic heuristic;
     Board finalBoard;
+    int timeComplexity = 0;
+    int sizeComplexity = 0;
 
     public IDAStar(IHeuristic heuristic, Board finalBoard) {
         this.heuristic = heuristic;
         this.finalBoard = finalBoard;
     }
 
-    void idaStar(Board startBoard) {
+    TheSolution idaStar(Board startBoard) {
         int bound = this.heuristic.h(startBoard);
         Node startNode = new Node(startBoard, null, null);
-        path.add(startNode);
+        path.push(startNode);
+        timeComplexity++;
 
         while (true) {
-            System.out.println("looping");
-            int t = search(0, bound);
-            if (t == Integer.MAX_VALUE) {
-                System.out.println("Found");
-                return;
+            Solution solution = search(0, bound);
+            if (solution.state == Solution.SolutionState.FOUND) {
+                return new TheSolution(solution.solution, timeComplexity, sizeComplexity);
             }
-            if (t == Integer.MAX_VALUE - 1) {
-                System.out.println("No solution");
-                return;
+            if (solution.state == Solution.SolutionState.NOT_FOUND) {
+                System.out.println("There is no solution for this board.");
+                return null;
             }
-            bound = t;
+            bound = solution.t;
         }
     }
 
-    int search(int g, int bound) {
+    Solution search(int g, int bound) {
+        if (path.size() > sizeComplexity)
+            sizeComplexity = path.size();
         Node node = path.lastElement();
         int f = g + heuristic.h(node.board);
         if (f > bound) {
-            return f;
+            return new Solution(f);
         }
         if (node.board.boardEquals(finalBoard)) {
-//            for (Board.Dir dir : getPath(node)) {
-//                System.out.println(dir);
-//            }
-            return Integer.MAX_VALUE;
+            return new Solution(f, Solution.SolutionState.FOUND, node.getPath());
         }
-        int min = Integer.MAX_VALUE - 1;
-        for (Node child : getNextNodes(node)) {
+        int min = Integer.MAX_VALUE;
+        for (Node child : node.getNextNodes(heuristic)) {
             if (!path.contains(child)) {
                 path.push(child);
-                int t = search(g + 1, bound);
-                if (t == Integer.MAX_VALUE) {
-                    return t;
+                timeComplexity++;
+                Solution solution = search(g + 1, bound);
+                if (solution.state == Solution.SolutionState.FOUND) {
+                    return solution;
                 }
-                if (t < min) {
-                    min = t;
+                if (solution.t < min) {
+                    min = solution.t;
                 }
                 path.pop();
             }
         }
-        return min;
+        return new Solution(min);
     }
 
-    public List<Node> getNextNodes(Node node) {
-        List<Node> result = new ArrayList<>();
-        for (Board.Dir dir : Board.Dir.values()) {
-            if (node.board.isMoveValid(dir)) {
-                Board newBoard = node.board.clone();
-                newBoard.move(dir);
-                Node newNode = new Node(newBoard, node, dir);
-                newNode.update(node.g, heuristic);
-                result.add(newNode);
-            }
-        }
-        return result;
-    }
-
-    public List<Board.Dir> getPath(Node node) {
-        List<Board.Dir> moves = new ArrayList<>();
-        Node current = node;
-        while (current.dir != null) {
-            moves.add(current.dir);
-            current = current.parent;
-        }
-        Collections.reverse(moves);
-        return moves;
-    }
 }

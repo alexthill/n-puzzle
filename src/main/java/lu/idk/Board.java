@@ -103,7 +103,7 @@ public class Board {
     /**
      * Apply a move to board. This does not check if the move is valid. Use `isMoveValid`.
      *
-     * @return  the number that is moved into the hole
+     * @return the number that is moved into the hole
      */
     public int move(Dir dir) {
         int diff = dirToValue(dir);
@@ -271,17 +271,34 @@ public class Board {
         return parity;
     }
 
+    public int getXPos() {
+        return size - (holeIdx / size + 1);
+    }
+
     public boolean isSolvable() {
         int parity = getParity();
         if (n % 2 == 1) {
             return parity % 2 == 1;
         }
 
-        int pos = size - (holeIdx / size + 1);
+        int pos = getXPos();
         if (pos % 2 == 1)
             return parity % 2 == 0;
         else
             return parity % 2 == 1;
+    }
+
+    public boolean isReachable(Board target) {
+        int fromParity = getParity();
+        int targetParity = target.getParity();
+
+        if (size != target.getSize())
+            return false;
+
+        if (size % 2 == 1)
+            return fromParity % 2 == targetParity % 2;
+        else
+            return (fromParity + getXPos()) % 2 == (targetParity + target.getXPos()) % 2;
     }
 
     public boolean isSolutionValid(List<Dir> moves) {
