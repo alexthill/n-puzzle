@@ -239,7 +239,7 @@ public class Board {
             for (int x = 1; x < size - 1; ++x) {
                 int num = list.get(i++);
                 grid[x + y * size] = num;
-                if (num == n * n) {
+                if (num == 0) {
                     holeIdx = coordsToIdx(x, y);
                 }
             }
