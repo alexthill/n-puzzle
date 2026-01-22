@@ -17,13 +17,18 @@ import java.util.PriorityQueue;
 
 public class StaticAdditivePattern implements IHeuristic {
 
-    private static final String DATABASE_FILE = "pattern_database_v1.bin";
-    private static final int[][][] PATTERNS = new int[][][] {
+    private static final int DATABASE_VERSION = 2;
+    private static final int[][][] PATTERNS_3 = new int[][][] {
+        {{1, 1}, {1, 2}, {1, 3}, {2, 1}},
+        {{3, 1}, {3, 2}, {3, 3}, {2, 3}},
+    };
+    private static final int[][][] PATTERNS_4 = new int[][][] {
         {{1, 1}, {1, 2}, {1, 3}, {1, 4}, {2, 2}},
         {{2, 1}, {3, 1}, {3, 2}, {4, 1}, {4, 2}},
         {{4, 2}, {3, 3}, {3, 4}, {4, 3}, {4, 4}},
     };
 
+    private int[][][] patterns;
     private Board target;
     private ArrayList<HashMap<Integer, Integer>> tables;
     private ArrayList<PatternData> patternData;
@@ -32,38 +37,47 @@ public class StaticAdditivePattern implements IHeuristic {
         this.target = target;
         int n = target.getN();
 
-        if (n != 4) {
-            throw new HeuristicFactoryException("StaticAdditivePattern can only be used with N=4");
-        }
-        if (target.getAtCoords(2, 3) != n * n) {
-            throw new HeuristicFactoryException("hole not at expected position");
+        switch (n) {
+            case 3:
+                patterns = PATTERNS_3;
+                if (target.getHoleIdx() != target.coordsToIdx(2, 2)) {
+                    throw new HeuristicFactoryException("hole not at expected position");
+                }
+                break;
+            case 4:
+                patterns = PATTERNS_4;
+                if (target.getHoleIdx() != target.coordsToIdx(2, 3)) {
+                    throw new HeuristicFactoryException("hole not at expected position");
+                }
+                break;
+            default:
+                throw new HeuristicFactoryException("StaticAdditivePattern can only be used with N=3 or N=4");
         }
 
-        patternData = new ArrayList(PATTERNS.length);
-        for (int[][] pattern: PATTERNS) {
+        patternData = new ArrayList(patterns.length);
+        for (int[][] pattern: patterns) {
             patternData.add(new PatternData(pattern, target));
         }
 
-        boolean readValidTable = readDatabase(DATABASE_FILE);
+        boolean readValidTable = readDatabase();
         if (!readValidTable) {
             System.out.println("computing pattern database (this may take some time)");
-            tables = new ArrayList(PATTERNS.length);
+            tables = new ArrayList(patterns.length);
             long start = System.currentTimeMillis();
-            for (int i = 0; i < PATTERNS.length; ++i) {
+            for (int i = 0; i < patterns.length; ++i) {
                 tables.add(computeDatabase(patternData.get(i)));
             }
             long end = System.currentTimeMillis();
             System.out.printf("time to compute pattern database %d ms\n", end - start);
-            saveDatabase(DATABASE_FILE);
+            saveDatabase();
         }
     }
 
     @Override
     public int h(Board board) {
-        int n = target.getN();
         int dist = 0;
 
-        for (int patternIdx = 0; patternIdx < PATTERNS.length; ++patternIdx) {
+        for (int patternIdx = 0; patternIdx < patterns.length; ++patternIdx) {
             PatternData data = patternData.get(patternIdx);
             int boardIdx = computeBoardIdx(board, data.isNumInPattern, data.numOrder);
             dist += tables.get(patternIdx).get(boardIdx);
@@ -72,13 +86,21 @@ public class StaticAdditivePattern implements IHeuristic {
         return dist;
     }
 
-    private void saveDatabase(String file) {
+    private String getDatabaseName() {
+        int n = target.getN();
+        return "pattern_database_n" + n + "_v" + DATABASE_VERSION + ".bin";
+    }
+
+    private void saveDatabase() {
+        String file = getDatabaseName();
         System.out.printf("saving pattern database to %s\n", file);
         try (
             FileOutputStream os = new FileOutputStream(file);
             BufferedOutputStream bs = new BufferedOutputStream(os);
             DataOutputStream out = new DataOutputStream(bs)
         ) {
+            out.writeInt(DATABASE_VERSION);
+            out.writeInt(target.getN());
             out.writeInt(tables.size());
             for (HashMap<Integer, Integer> table: tables) {
                 out.writeInt(table.size());
@@ -92,15 +114,23 @@ public class StaticAdditivePattern implements IHeuristic {
         }
     }
 
-    private boolean readDatabase(String file) {
+    private boolean readDatabase() {
+        String file = getDatabaseName();
         System.out.printf("reading pattern database from %s\n", file);
         try (
             FileInputStream is = new FileInputStream(file);
             BufferedInputStream bs = new BufferedInputStream(is);
             DataInputStream in = new DataInputStream(bs)
         ) {
+            if (in.readInt() != DATABASE_VERSION) {
+                throw new Exception("invalid database: bad version");
+            }
+            if (in.readInt() != target.getN()) {
+                throw new Exception("invalid database: bad n");
+            }
+
             int tableCount = in.readInt();
-            if (tableCount != PATTERNS.length) {
+            if (tableCount != patterns.length) {
                 throw new Exception("invalid database: bad tableCount");
             }
 
@@ -118,20 +148,21 @@ public class StaticAdditivePattern implements IHeuristic {
                 tables.add(table);
             }
         } catch (Exception e) {
-            System.err.println("failed to read database: " + e);
+            System.out.println("failed to read database: " + e.getMessage());
             return false;
         }
         return true;
     }
 
     private HashMap<Integer, Integer> computeDatabase(PatternData data) {
-        int size = target.getSize();
+        final int size = target.getSize();
+        final int n = target.getN();
 
         Board board = target.clone();
         for (int y = 1; y < size - 1; ++y) {
             for (int x = 1; x < size - 1; ++x) {
                 if (!data.isNumInPattern[board.getAtCoords(x, y)]) {
-                    board.setAtCoords(x, y, -1);
+                    board.setAtCoords(x, y, n * n);
                 }
             }
         }
@@ -158,7 +189,7 @@ public class StaticAdditivePattern implements IHeuristic {
                 if (curr.board.isMoveValid(dir)) {
                     Board next = curr.board.clone();
                     int num = next.move(dir);
-                    if (num != -1 && data.isNumInPattern[num]) {
+                    if (data.isNumInPattern[num]) {
                         queue.add(new Node(next, curr.cost + 1));
                     } else {
                         queue.add(new Node(next, curr.cost));
@@ -188,10 +219,11 @@ public class StaticAdditivePattern implements IHeuristic {
     private static int computeBoardIdx(Board board, boolean[] isNumInPattern, int[] numOrder) {
         int size = board.getSize();
         int idx = 0;
+
         for (int y = 1; y < size - 1; ++y) {
             for (int x = 1; x < size - 1; ++x) {
                 int num = board.getAtCoords(x, y);
-                if (num != -1 && isNumInPattern[num]) {
+                if (isNumInPattern[num]) {
                     idx |= (x | (y << 3)) << (6 * numOrder[num]);
                 }
             }

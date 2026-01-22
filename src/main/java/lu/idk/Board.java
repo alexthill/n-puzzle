@@ -22,15 +22,13 @@ public class Board {
 
     private int n;
     private int size;
-    private int sizeSqr;
     private int holeIdx;
     private int[] grid;
 
     private Board(int n) {
         this.n = n;
         size = n + 2;
-        sizeSqr = size * size;
-        grid = new int[sizeSqr];
+        grid = new int[size * size];
     }
 
     public Board(int n, int[] array) throws Exception {
@@ -40,8 +38,7 @@ public class Board {
 
         this.n = n;
         size = n + 2;
-        sizeSqr = size * size;
-        grid = new int[sizeSqr];
+        grid = new int[size * size];
 
         int i = 0;
         for (int y = 1; y < size - 1; ++y) {
@@ -49,7 +46,7 @@ public class Board {
                 int num = array[i++];
                 if (num == 0) {
                     holeIdx = coordsToIdx(x, y);
-                    grid[x + y * size] = n * n;
+                    grid[x + y * size] = 0;
                 } else {
                     grid[x + y * size] = num;
                 }
@@ -128,6 +125,10 @@ public class Board {
         return grid[idx] == 0;
     }
 
+    public int getAt(int idx) {
+        return grid[idx];
+    }
+
     public int getAtCoords(int x, int y) {
         return grid[coordsToIdx(x, y)];
     }
@@ -157,7 +158,12 @@ public class Board {
         for (int y = 0; y < size; ++y) {
             for (int x = 0; x < size; ++x) {
                 int num = grid[coordsToIdx(x, y)];
-                if (num == 0) {
+                if (coordsToIdx(x, y) == holeIdx) {
+                    for (int i = 1; i < cellW; ++i) {
+                        sb.append(" ");
+                    }
+                    sb.append("_");
+                } else if (num == 0) {
                     if (x == 0 && y == 0) {
                         sb.append("┌");
                     } else if (x == size - 1 && y == 0) {
@@ -171,11 +177,6 @@ public class Board {
                     } else {
                         sb.append("─".repeat(cellW));
                     }
-                } else if (num == n * n) {
-                    for (int i = 1; i < cellW; ++i) {
-                        sb.append(" ");
-                    }
-                    sb.append("_");
                 } else {
                     sb.append(String.format("%" + cellW + "d", num));
                 }
@@ -234,11 +235,12 @@ public class Board {
         }
 
         holeIdx = pos;
+        grid[holeIdx] = 0;
     }
 
     private void randomPattern() {
         List<Integer> list = new ArrayList<>(n);
-        for (int i = 1; i <= n * n; i++) {
+        for (int i = 0; i < n * n; i++) {
             list.add(i);
         }
         Collections.shuffle(list);
@@ -258,10 +260,10 @@ public class Board {
     int getParity() {
         int parity = 0;
         for (int i = 0; i < grid.length; i++) {
-            if (grid[i] == 0 || grid[i] == n * n)
+            if (grid[i] == 0)
                 continue;
             for (int j = i + 1; j < grid.length; j++) {
-                if (grid[j] == 0 || grid[j] == n * n)
+                if (grid[j] == 0)
                     continue;
                 if (grid[i] > grid[j]) {
                     parity++;

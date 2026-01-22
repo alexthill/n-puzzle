@@ -5,7 +5,6 @@ import lu.idk.Board;
 public class Manhattan implements IHeuristic {
 
     private Board target;
-    private int hole;
     private int[] targetXs;
     private int[] targetYs;
 
@@ -14,9 +13,8 @@ public class Manhattan implements IHeuristic {
 
         int n = target.getN();
         int size = target.getSize();
-        targetXs = new int[n * n + 1];
-        targetYs = new int[n * n + 1];
-        hole = n * n;
+        targetXs = new int[n * n];
+        targetYs = new int[n * n];
 
         for (int y = 1; y < size - 1; ++y) {
             for (int x = 1; x < size - 1; ++x) {
@@ -35,7 +33,7 @@ public class Manhattan implements IHeuristic {
         for (int y = 1; y < size - 1; ++y) {
             for (int x = 1; x < size - 1; ++x) {
                 int num = board.getAtCoords(x, y);
-                if (num == hole) {
+                if (num == 0) {
                     continue;
                 }
 

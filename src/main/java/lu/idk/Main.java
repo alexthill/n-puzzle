@@ -5,6 +5,7 @@ import lu.idk.heuristics.HeuristicFactory.HeuristicFactoryException;
 import lu.idk.heuristics.IHeuristic;
 
 import java.lang.NumberFormatException;
+import java.io.Console;
 import java.util.List;
 
 public class Main {
@@ -37,9 +38,12 @@ public class Main {
             Board snail = Board.snail(board.getN());
             heuristic = HeuristicFactory.newHeuristic(snail, args[1]);
         } catch (HeuristicFactoryException e) {
-            System.err.printf("Failed create heurisitc: %s\n", e.getMessage());
+            System.err.printf("Failed to create heuristic: %s\n", e.getMessage());
             System.exit(1);
         }
+
+        // System.out.println("Press Enter to continue");
+        // System.console().readLine();
 
         if (board != null && heuristic != null) {
             System.out.printf("Solving board\n%s\n", board.prettyString());
