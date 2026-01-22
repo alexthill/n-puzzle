@@ -265,20 +265,7 @@ public class Board {
     public int getXPos() {
         return size - (holeIdx / size + 1);
     }
-
-    public boolean isSolvable() {
-        int parity = getParity();
-        if (n % 2 == 1) {
-            return parity % 2 == 1;
-        }
-
-        int pos = getXPos();
-        if (pos % 2 == 1)
-            return parity % 2 == 0;
-        else
-            return parity % 2 == 1;
-    }
-
+    
     public boolean isReachable(Board target) {
         int fromParity = getParity();
         int targetParity = target.getParity();

@@ -19,6 +19,11 @@ public class Main {
             System.exit(1);
         }
 
+        for (int i = 0; i < 15; i++) {
+            System.out.println(Board.snail(i).getParity());
+        }
+
+
         Board board;
         try {
             int n = Integer.parseInt(args[0]);
@@ -33,8 +38,8 @@ public class Main {
         }
 
         IHeuristic heuristic = null;
+        Board snail = Board.snail(board.getN());
         try {
-            Board snail = Board.snail(board.getN());
             heuristic = HeuristicFactory.newHeuristic(snail, args[1]);
         } catch (HeuristicFactoryException e) {
             System.err.printf("Failed to create heuristic: %s\n", e.getMessage());
@@ -42,10 +47,11 @@ public class Main {
         }
 
         System.out.printf("Solving board\n%s\n", board.prettyString());
-        if (board.isSolvable()) {
+        if (board.isReachable(snail)) {
             ctrlz(board, heuristic);
         } else {
             System.out.println("Board is not solvable!");
+            System.out.println(board.getParity());
         }
 
     }
