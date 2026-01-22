@@ -19,11 +19,6 @@ public class Main {
             System.exit(1);
         }
 
-        for (int i = 0; i < 15; i++) {
-            System.out.println(Board.snail(i).getParity());
-        }
-
-
         Board board;
         try {
             int n = Integer.parseInt(args[0]);
@@ -51,7 +46,6 @@ public class Main {
             ctrlz(board, heuristic);
         } else {
             System.out.println("Board is not solvable!");
-            System.out.println(board.getParity());
         }
 
     }
